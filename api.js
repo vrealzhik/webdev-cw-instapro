@@ -19,7 +19,15 @@ export function getPosts({ token }) {
       return response.json();
     })
     .then((data) => {
-      return data.posts;
+      return data.posts.map((post) => {
+        return {
+          name: post?.user?.name,
+          description: post.description,
+          time: post.createdAt,
+          img: post.imageUrl,
+          userImg: post?.user?.imageUrl,
+        }
+      });
     });
 }
 
