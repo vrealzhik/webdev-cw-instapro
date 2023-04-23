@@ -84,7 +84,6 @@ export const goToPage = (newPage, data) => {
 };
 
 const renderApp = () => {
-  
   const appEl = document.getElementById("app");
   if (page === LOADING_PAGE) {
     return renderLoadingPageComponent({
