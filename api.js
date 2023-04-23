@@ -26,6 +26,7 @@ export function getPosts({ token }) {
           time: post.createdAt,
           img: post.imageUrl,
           userImg: post?.user?.imageUrl,
+          id: post.user.id
         }
       });
     });
@@ -93,4 +94,29 @@ export function addPostFetch({ token, description, imageUrl }) {
     }
     return response.json();
   });
+}
+
+export function getUserPosts(userId) {
+  return fetch(postsHost + "/user-posts/" + userId, {
+    method: "GET",
+  })
+    .then((response) => {
+      if (response.status === 401) {
+        throw new Error("Нет авторизации");
+      }
+
+      return response.json();
+    })
+    .then((data) => {
+      return data.posts.map((post) => {
+        return {
+          name: post?.user?.name,
+          description: post.description,
+          time: post.createdAt,
+          img: post.imageUrl,
+          userImg: post?.user?.imageUrl,
+          id: post.user.id
+        }
+      });
+    });
 }
