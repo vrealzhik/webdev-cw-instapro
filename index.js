@@ -1,4 +1,4 @@
-import { addPostFetch, getPosts, getUserPosts } from "./api.js";
+import { addPostFetch, getPosts, getUserPosts, addLike, addDislike } from "./api.js";
 import { renderAddPostPageComponent } from "./components/add-post-page-component.js";
 import { renderAuthPageComponent } from "./components/auth-page-component.js";
 import {
@@ -72,21 +72,12 @@ export const goToPage = (newPage, data) => {
       renderApp();
       
       let userId = data.userId
-      return getUserPosts(userId)
+      return getUserPosts({userId, token: getToken()})
       .then((newPosts) => {
         page = USER_POSTS_PAGE;
         posts = newPosts;
         renderApp();
       })
-      // .catch((error) => {
-      //   console.error(error);
-      //   goToPage(POSTS_PAGE);
-      // });
-      // TODO: реализовать получение постов юзера из API
-
-      page = USER_POSTS_PAGE;
-      posts = [];
-      return renderApp();
     }
 
     page = newPage;
@@ -94,6 +85,8 @@ export const goToPage = (newPage, data) => {
 
     return;
   }
+
+  likeEventListeners();
 
   throw new Error("страницы не существует");
 };
@@ -122,7 +115,6 @@ const renderApp = () => {
   }
 
   if (page === ADD_POSTS_PAGE) {
-    
     return renderAddPostPageComponent({
       appEl,
       onAddPostClick({description, imageUrl }) {
@@ -150,6 +142,87 @@ const renderApp = () => {
       appEl,
     });
   }
+
+  likeEventListeners();
 };
 
+export const likeEventListeners = () => {
+  const likeButtonsElements = document.querySelectorAll(".like-button");
+
+  for ( const likeButtonElement of likeButtonsElements) {
+    const postId = likeButtonElement.dataset.postId
+    //const userId = likeButtonElement.dataset.userId
+    const index = +(likeButtonElement.dataset.index)
+    likeButtonElement.addEventListener("click", () => {
+      let userId = posts[index].id
+      // let postId = posts[index].id
+      console.log(posts[index].isLiked)
+      if (posts[index].isLiked === true) {
+        addDislike({postId, token: getToken()}).then(() => {
+          if(page === POSTS_PAGE) {
+            return getPosts({ token: getToken()})
+            .then((newPosts) => {
+              page = POSTS_PAGE;
+              posts = newPosts;
+              renderApp();
+            })
+          } else {
+            return getUserPosts({userId, token: getToken()})
+            .then((newPosts) => {
+              page = USER_POSTS_PAGE;
+              posts = newPosts;
+              renderApp();
+            })
+          }
+
+        })
+      } else {
+        addLike({postId, token: getToken()}).then(() => {
+          if(page === POSTS_PAGE) {
+            return getPosts({ token: getToken()})
+            .then((newPosts) => {
+              page = POSTS_PAGE;
+              posts = newPosts;
+              renderApp();
+            })
+          } else {
+            return getUserPosts({userId, token: getToken()})
+            .then((newPosts) => {
+              page = USER_POSTS_PAGE;
+              posts = newPosts;
+              renderApp();
+            })
+          }
+        })
+      }
+    })
+  }
+}
+
+const btnUp = {
+  el: document.querySelector('.btn-up'),
+  show() {
+    this.el.classList.remove('btn-up_hide');
+  },
+  hide() {
+    this.el.classList.add('btn-up_hide');
+  },
+  addEventListener() {
+    window.addEventListener('scroll', () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      scrollY > 400 ? this.show() : this.hide();
+    });
+    document.querySelector('.btn-up').onclick = () => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'smooth'
+      });
+    }
+  }
+}
+
+btnUp.addEventListener();
+
 goToPage(POSTS_PAGE);
+likeEventListeners();

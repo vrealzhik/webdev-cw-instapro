@@ -26,7 +26,11 @@ export function getPosts({ token }) {
           time: post.createdAt,
           img: post.imageUrl,
           userImg: post?.user?.imageUrl,
-          id: post.user.id
+          id: post.user.id,
+          idPost: post.id,
+          isLiked: post.isLiked,
+          likes: post.likes.length,
+          whoLike: post?.likes[0]?.name,
         }
       });
     });
@@ -96,15 +100,17 @@ export function addPostFetch({ token, description, imageUrl }) {
   });
 }
 
-export function getUserPosts(userId) {
+export function getUserPosts({token, userId}) {
   return fetch(postsHost + "/user-posts/" + userId, {
     method: "GET",
+    headers: {
+      Authorization: token,
+    },
   })
     .then((response) => {
       if (response.status === 401) {
         throw new Error("Нет авторизации");
       }
-
       return response.json();
     })
     .then((data) => {
@@ -115,8 +121,36 @@ export function getUserPosts(userId) {
           time: post.createdAt,
           img: post.imageUrl,
           userImg: post?.user?.imageUrl,
-          id: post.user.id
+          id: post.user.id,
+          idPost: post.id,
+          isLiked: post.isLiked,
+          likes: post.likes.length,
+          whoLike: post?.likes[0]?.name,
         }
       });
     });
+}
+
+export function addLike({ token, postId }) {
+  return fetch(postsHost + "/" + postId + "/like", {
+    method: "POST",
+    headers: {
+      Authorization: token,
+    },
+    body: JSON.stringify({
+      postId,
+    }),
+  })
+}
+
+export function addDislike({ token, postId }) {
+  return fetch(postsHost + "/" + postId + "/dislike", {
+    method: "POST",
+    headers: {
+      Authorization: token,
+    },
+    body: JSON.stringify({
+      postId,
+    }),
+  })
 }
